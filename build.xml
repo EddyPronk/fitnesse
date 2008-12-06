@@ -152,6 +152,17 @@
     </junit>
   </target>
 
+  <target name="clean_dist" description="clean out the distribution folder">
+    <mkdir dir="dist"/>
+    <delete>
+      <fileset dir="dist">
+        <include name="fitnesse*.zip"/>
+        <include name="fitnesse.jar"/>
+        <exclude name="FitNesseRoot"/>
+      </fileset>
+    </delete>
+    <delete dir="dist/fitnesse"/>
+  </target>
 	<target name="slim_test" depends="compile" description="run the unit tests">
 		<junit fork="yes" printsummary="no" haltonfailure="yes" haltonerror="yes" dir="${basedir}">
 			<classpath refid="classpath" />

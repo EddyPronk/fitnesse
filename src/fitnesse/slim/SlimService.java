@@ -35,7 +35,6 @@ public class SlimService extends SocketService {
 
   public SlimService(int port, boolean verbose) throws Exception {
     super(port, new SlimServer(verbose));
-	System.err.println("blah");
     instance = this;
   }
 }
