@@ -1,6 +1,7 @@
 package fitnesse.slim;
 
 import static fitnesse.util.ListUtility.list;
+import fitnesse.components.CommandRunner;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -14,13 +15,15 @@ import java.util.Map;
 public class SlimServiceTest {
   private List<Object> statements;
   private SlimClient slimClient = new SlimClient("localhost", 8099);
-
+  private CommandRunner runner;
   @Before
   public void setUp() throws Exception {
-    createSlimService();
     slimClient = new SlimClient("localhost", 8099);
+    createSlimService();
     statements = new ArrayList<Object>();
+	System.err.println("try to connect");
     slimClient.connect();
+	System.err.println("connected?");
   }
 
   protected void createSlimService() throws Exception {
@@ -30,8 +33,13 @@ public class SlimServiceTest {
 
   private boolean tryCreateSlimService() throws Exception {
     try {
-      SlimService.main(new String[]{"8099"});
-      return true;
+	//runner = new CommandRunner("java -cp classes:fitnesse.jar:fitlibrary.jar fitnesse.slim.SlimService 8099", "");
+	runner = new CommandRunner("python /home/epronk/stuff/pyfit/fitnesse/slim/SlimService.py classes:fitnesse.jar:fitlibrary.jar fitnesse.slim.SlimService 8099", "");
+	System.err.println("starting service");
+	runner.start();
+	Thread.sleep(300);
+	System.err.println("started");
+	return true;
     } catch (Exception e) {
       return false;
     }
@@ -45,15 +53,17 @@ public class SlimServiceTest {
   protected void teardown() throws Exception {
     slimClient.sendBye();
     slimClient.close();
+	runner.join();
+	Thread.sleep(300);
   }
 
-  @Test
+	///@Test
   public void emptySession() throws Exception {
     assertTrue("Connected", slimClient.isConnected());
   }
 
-  @Test
-  public void callOneMethod() throws Exception {
+	///@Test
+		public void callOneMethod() throws Exception {
     addImportAndMake();
     addEchoInt("id", "1");
     Map<String, Object> result = slimClient.invokeAndGetResponse(statements);
@@ -65,6 +75,7 @@ public class SlimServiceTest {
   }
 
   private void addImportAndMake() {
+<<<<<<< HEAD:src/fitnesse/slim/SlimServiceTest.java
     statements.add(list("i1", "import", getImport()));
     statements.add(list("m1", "make", "testSlim", "TestSlim"));
   }
@@ -74,6 +85,13 @@ public class SlimServiceTest {
   }
 
   @Test
+=======
+    statements.add(list("i1", "import", "test.TestSlim"));
+    statements.add(list("m1", "make", "testSlim", "TestSlim"));
+  }
+
+	//@Test
+>>>>>>> hack to test python slim:src/fitnesse/slim/SlimServiceTest.java
   public void makeManyCallsInOrderToTestLongSequencesOfInstructions() throws Exception {
     addImportAndMake();
     for (int i = 0; i < 1000; i++)
@@ -83,7 +101,7 @@ public class SlimServiceTest {
       assertEquals(i, Integer.parseInt((String) result.get(String.format("id_%d", i))));
   }
 
-  @Test
+	///@Test
   public void callWithLineBreakInStringArgument() throws Exception {
     addImportAndMake();
     statements.add(list("id", "call", "testSlim", "echoString", "hello\nworld\n"));
@@ -91,11 +109,11 @@ public class SlimServiceTest {
     assertEquals("hello\nworld\n", result.get("id"));
   }
 
-  @Test
+	@Test
   public void makeManyIndividualCalls() throws Exception {
     addImportAndMake();
     slimClient.invokeAndGetResponse(statements);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1; i++) {
       statements.clear();
       addEchoInt("id", "42");
       Map<String, Object> result = slimClient.invokeAndGetResponse(statements);
@@ -104,7 +122,7 @@ public class SlimServiceTest {
     }
   }
 
-  @Test
+	///@Test
   public void callFunctionThatDoesntExist() throws Exception {
     addImportAndMake();
     statements.add(list("id", "call", "testSlim", "noSuchFunction"));
@@ -117,14 +135,14 @@ public class SlimServiceTest {
     assertTrue(result, result.indexOf(SlimServer.EXCEPTION_TAG) != -1 && result.indexOf(message) != -1);
   }
 
-  @Test
+	///@Test
   public void makeClassThatDoesntExist() throws Exception {
     statements.add(list("m1", "make", "me", "NoSuchClass"));
     Map<String, Object> results = slimClient.invokeAndGetResponse(statements);
     assertContainsException("message:<<COULD_NOT_INVOKE_CONSTRUCTOR", "m1", results);
   }
 
-  @Test
+	///@Test
   public void useInstanceThatDoesntExist() throws Exception {
     addImportAndMake();
     statements.add(list("id", "call", "noInstance", "f"));
@@ -132,7 +150,7 @@ public class SlimServiceTest {
     assertContainsException("message:<<NO_INSTANCE", "id", results);
   }
 
-  @Test
+	///@Test
   public void verboseArgument() throws Exception {
     String args[] = {"-v", "99"};
     assertTrue(SlimService.parseCommandLine(args));
